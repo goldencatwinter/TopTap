@@ -6,20 +6,15 @@
     <title>TOP - Global Ranking</title>
     <meta name="description" content="TOP - A Neon Stack Rhythm Game with Global Leaderboard">
     <style>
+        /* === BASE STYLES === */
         @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap');
 
         body {
-            margin: 0;
-            padding: 0;
-            overflow: hidden;
+            margin: 0; padding: 0; overflow: hidden;
             background-color: #000;
             font-family: 'Orbitron', sans-serif;
-            touch-action: none;
-            user-select: none;
-            -webkit-user-select: none;
-            display: flex;
-            justify-content: center;
-            align-items: center;
+            touch-action: none; user-select: none; -webkit-user-select: none;
+            display: flex; justify-content: center; align-items: center;
             height: 100vh;
         }
 
@@ -31,47 +26,33 @@
         }
 
         canvas {
-            display: block;
-            outline: none;
-            width: 100%;
-            height: 100%;
+            display: block; outline: none; width: 100%; height: 100%;
         }
 
         #ui-layer {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
             pointer-events: none;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
             z-index: 10;
         }
 
+        /* === SCORE & COMBO UI === */
         #score-container {
-            position: absolute;
-            top: 15%;
+            position: absolute; 
+            top: 10%; 
             text-align: center;
         }
 
         #score {
-            font-size: 6rem;
-            font-weight: 900;
-            margin: 0;
-            line-height: 1;
+            font-size: 5.4rem; /* 6rem -> 5.4rem (10% 감소) */
+            font-weight: 900; margin: 0; line-height: 1;
             background: linear-gradient(to bottom, #FFFF00, #FFD700);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
             filter: drop-shadow(0 0 20px rgba(255, 215, 0, 0.8));
             transition: transform 0.1s;
         }
         
-        .score-pop {
-            animation: scorePopAnim 0.3s ease-out forwards;
-        }
+        .score-pop { animation: scorePopAnim 0.3s ease-out forwards; }
 
         @keyframes scorePopAnim {
             0% { transform: scale(1); filter: drop-shadow(0 0 20px rgba(255, 215, 0, 0.8)); }
@@ -80,89 +61,73 @@
         }
 
         #combo-msg {
-            position: absolute;
-            top: 28%;
-            font-size: 2.5rem;
-            font-weight: bold;
-            color: #fff;
-            opacity: 0;
+            position: absolute; top: 20%; /* 스코어 위치에 맞춰 조정 */
+            font-size: 2.5rem; font-weight: bold; color: #fff;
+            opacity: 0; white-space: nowrap;
             text-shadow: 0 0 20px #0ff, 0 0 40px #0ff;
             transform: scale(0.5);
             transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            white-space: nowrap;
         }
 
+        /* === INTRO & MENU SCREENS === */
         #intro-screen {
-            position: absolute;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0, 0, 0, 0.8);
-            backdrop-filter: blur(5px);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: flex-start; 
-            padding-top: 120px; 
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.8); backdrop-filter: blur(5px);
+            display: flex; flex-direction: column; align-items: center; 
+            justify-content: flex-start; /* TOP 글자 위치 조정을 위해 flex-start로 변경 */
+            padding-top: 0; 
             box-sizing: border-box;
-            z-index: 20;
-            pointer-events: auto;
-            cursor: pointer;
-            transition: opacity 0.5s;
+            z-index: 20; pointer-events: auto; cursor: pointer; transition: opacity 0.5s;
         }
         #intro-screen h1 {
             font-size: 5rem; 
-            color: #fff; 
-            margin: 0;
+            color: #fff; margin: 0; 
+            margin-top: 45vh; /* 캔버스 높이의 45% 지점 */
+            transform: translateY(-50%); /* 텍스트 자체 높이의 절반만큼 위로 올려 정확히 중앙에 배치 */
             text-shadow: 0 0 20px #fff, 0 0 40px rgba(255,255,255,0.5);
-            background: none;
-            -webkit-text-fill-color: #fff;
+            background: none; -webkit-text-fill-color: #fff;
         }
         #intro-screen p {
+            position: absolute; /* TOP 위치 조정에 영향을 주지 않도록 절대 위치 사용 */
+            top: 50%; /* TOP 글자 중앙 아래에 위치하도록 조정 */
+            margin-top: 50px; /* TOP 글자 높이와 간격을 고려한 최종 위치 조정 */
             font-size: 1.2rem; color: #aaa; animation: blink 1s infinite;
-            margin-top: 50%;
             letter-spacing: 2px;
         }
 
         #menu-screen {
-            background: none; 
-            backdrop-filter: none;
-            border: none;
-            position: absolute;
-            top: 0; left: 0;
+            background: none; backdrop-filter: none; border: none;
+            position: absolute; top: 0; left: 0;
             width: 100%; height: 100%;
-            padding: 60px 0;
+            padding: 0 0 60px 0; 
             box-sizing: border-box;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: space-between;
-            pointer-events: none;
-            transform: translateY(0);
+            display: flex; flex-direction: column; align-items: center; 
+            justify-content: space-between; 
+            pointer-events: none; transform: translateY(0);
             transition: opacity 0.3s, transform 0.3s;
         }
 
         #menu-screen h1 {
             font-size: 4rem;
-            margin: 0;
+            /* GAME OVER 글자 캔버스 높이의 35% 지점에 오도록 조정 */
+            margin-top: 35%; 
+            margin-bottom: auto; 
             text-transform: uppercase;
-            font-weight: 900;
-            letter-spacing: 5px;
+            font-weight: 900; letter-spacing: 5px;
+            line-height: 0.8; /* 간격 좁힘 유지 */
+            width: 80%; 
+            word-break: break-word; 
             background: linear-gradient(45deg, #ff0000, #ff7300, #fffb00, #48ff00, #00ffd5, #002bff, #7a00ff, #ff00c8, #ff0000);
-            background-size: 400% 400%;
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
+            background-size: 400% 400%; -webkit-background-clip: text; -webkit-text-fill-color: transparent;
             animation: rainbow 10s ease infinite;
             text-shadow: 0 0 30px rgba(255, 255, 255, 0.2);
             pointer-events: auto;
-            /* [수정] 게임 오버 제목 중앙 정렬 */
             text-align: center;
         }
         
         .bottom-controls {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            pointer-events: auto;
-            margin-bottom: 20px;
+            display: flex; flex-direction: column; align-items: center;
+            pointer-events: auto; margin-bottom: 20px;
         }
 
         @keyframes rainbow { 
@@ -171,97 +136,54 @@
             100% { background-position: 0% 50% }
         }
 
+        /* === BUTTONS === */
         button {
-            background: rgba(0, 0, 0, 0.5);
-            color: rgba(255, 255, 255, 0.8);
-            font-family: 'Orbitron', sans-serif;
-            font-size: 2.5rem;
-            font-weight: 900;
-            padding: 15px 50px;
-            border: 2px solid rgba(255, 255, 255, 0.3);
-            border-radius: 20px;
-            cursor: pointer;
-            box-shadow: 0 0 15px rgba(0,0,0,0.5);
-            transition: all 0.3s ease;
-            text-transform: uppercase;
-            margin-bottom: 10px;
+            background: rgba(0, 0, 0, 0.5); color: rgba(255, 255, 255, 0.8);
+            font-family: 'Orbitron', sans-serif; font-size: 2.5rem; font-weight: 900;
+            padding: 15px 50px; border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 20px; cursor: pointer; box-shadow: 0 0 15px rgba(0,0,0,0.5);
+            transition: all 0.3s ease; text-transform: uppercase; margin-bottom: 10px;
             pointer-events: auto;
         }
 
         button:hover {
-            color: #fff;
-            background: rgba(255, 255, 255, 0.3);
-            border-color: #fff;
-            text-shadow: 0 0 20px #fff;
+            color: #fff; background: rgba(255, 255, 255, 0.3);
+            border-color: #fff; text-shadow: 0 0 20px #fff;
             transform: scale(1.05);
         }
 
-        button:active {
-            transform: scale(0.95);
-        }
+        button:active { transform: scale(0.95); }
 
         .credit {
-            font-size: 0.8rem;
-            color: #fff;
-            letter-spacing: 1px;
-            text-transform: uppercase;
-            text-shadow: 0 0 5px rgba(0,0,0,0.8);
-            opacity: 0.8;
-            pointer-events: auto;
+            font-size: 0.8rem; color: #fff; letter-spacing: 1px;
+            text-transform: uppercase; text-shadow: 0 0 5px rgba(0,0,0,0.8);
+            opacity: 0.8; pointer-events: auto;
         }
-
-        .credit span {
-            color: #fff;
-            font-weight: bold;
-        }
+        .credit span { color: #fff; font-weight: bold; }
         
+        /* === RANKING & MODALS === */
         #ranking-btn-toggle {
-            position: absolute;
-            top: 25px;
-            right: 25px;
-            color: rgba(255, 255, 255, 0.7);
-            font-size: 1.2rem;
-            font-weight: bold;
-            cursor: pointer;
-            z-index: 50;
-            pointer-events: auto;
-            border: 1px solid rgba(255, 255, 255, 0.3);
-            padding: 5px 10px;
-            border-radius: 5px;
-            background: rgba(0,0,0,0.5);
-            transition: all 0.3s;
+            position: absolute; top: 25px; right: 25px;
+            color: rgba(255, 255, 255, 0.7); font-size: 1.2rem; font-weight: bold;
+            cursor: pointer; z-index: 50; pointer-events: auto;
+            border: 1px solid rgba(255, 255, 255, 0.3); padding: 5px 10px;
+            border-radius: 5px; background: rgba(0,0,0,0.5); transition: all 0.3s;
         }
-        #ranking-btn-toggle:hover {
-            color: #0ff;
-            border-color: #0ff;
-            text-shadow: 0 0 10px #0ff;
-        }
+        #ranking-btn-toggle:hover { color: #0ff; border-color: #0ff; text-shadow: 0 0 10px #0ff; }
 
         #ranking-board {
-            display: none;
-            position: absolute;
-            top: 50%; left: 50%;
-            transform: translate(-50%, -50%);
-            width: 85%;
-            max-width: 400px;
-            background: rgba(0, 0, 0, 0.9);
-            border: 2px solid #0ff;
-            border-radius: 15px;
-            padding: 20px;
-            box-sizing: border-box;
-            z-index: 60;
-            pointer-events: auto;
-            text-align: center;
+            display: none; position: absolute; top: 50%; left: 50%;
+            transform: translate(-50%, -50%); width: 85%; max-width: 400px;
+            background: rgba(0, 0, 0, 0.9); border: 2px solid #0ff;
+            border-radius: 15px; padding: 20px; box-sizing: border-box;
+            z-index: 60; pointer-events: auto; text-align: center;
             box-shadow: 0 0 30px rgba(0, 255, 255, 0.2);
         }
         
         #high-score-list {
             list-style: none; padding: 0; margin: 15px 0 0 0; 
             font-size: 1rem; color: #fff; text-align: left;
-            width: 100%; 
-            /* 랭킹 목록이 길어지면 스크롤이 가능하도록 최대 높이를 설정합니다. */
-            max-height: 400px; 
-            overflow-y: auto;
+            width: 100%; max-height: 400px; overflow-y: auto;
         }
         
         #high-score-list li {
@@ -277,16 +199,10 @@
         }
         
         #close-ranking-board {
-            margin-top: 15px;
-            font-size: 1rem;
-            padding: 5px 20px;
-            border: 1px solid #555;
-            color: #aaa;
-            background: transparent;
+            margin-top: 15px; font-size: 1rem; padding: 5px 20px;
+            border: 1px solid #555; color: #aaa; background: transparent;
         }
-        #close-ranking-board:hover {
-            color: #fff; border-color: #fff;
-        }
+        #close-ranking-board:hover { color: #fff; border-color: #fff; }
 
         .replay-hint { font-size: 0.7rem; color: #aaa; margin-top: 5px; font-style: italic; }
         
@@ -323,8 +239,8 @@
             color: #FFFF00; font-size: 0.8rem; z-index: 100;
         }
 
+        /* === UTILITY CLASSES === */
         @keyframes blink { 50% { opacity: 0.5; } }
-
         .hide { opacity: 0; pointer-events: none !important; transform: translateY(20px) !important; }
         .display-none { display: none !important; }
     </style>
@@ -333,7 +249,7 @@
 
 <div id="game-wrapper">
     <div id="intro-screen">
-        <h1>TOP</h1>
+        <h1>TOP</h1> <!-- TOP 글자 복원 -->
         <p>CLICK TO START</p>
     </div>
 
@@ -360,7 +276,7 @@
         <div id="initialsModal" class="display-none"></div>
 
         <div id="menu-screen" class="hide">
-            <h1>TOP</h1>
+            <h1>TOP</h1> <!-- TOP 글자 복원 -->
             
             <div class="bottom-controls">
                 <button id="start-btn">PLAY</button>
@@ -374,12 +290,14 @@
 </div>
 
 <script type="module">
+    // =========================================================================
+    // FIREBASE & AUTH CONFIGURATION
+    // =========================================================================
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
     import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
     import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
 
-    // --- 1. [배포용] 본인의 FIREBASE 설정을 아래에 붙여넣으세요 ---
-    // (이 설정은 깃허브 등에 배포했을 때 사용됩니다)
+    // --- 1. [외부 배포용] FIREBASE 설정 ---
     const myFirebaseConfig = {
         apiKey: "AIzaSyCYEbWcIOd-h_pGylkwijzwsrlKnVjWKtA",
         authDomain: "top10-bab3c.firebaseapp.com",
@@ -390,7 +308,7 @@
         measurementId: "G-S7EFBEHL7X"
     };
 
-    // --- 2. [자동 감지] 실행 환경에 따라 설정을 자동으로 선택합니다 ---
+    // --- 2. [자동 감지] 실행 환경에 따른 설정 선택 ---
     const isCanvasEnv = typeof __firebase_config !== 'undefined';
     let firebaseConfig;
 
@@ -411,13 +329,13 @@
         auth = getAuth(app);
         db = getFirestore(app);
     } catch (e) {
-        console.error("Firebase Init Error: 설정이 비어있거나 잘못되었습니다.");
+        console.error("Firebase Init Error: 설정이 비어있거나 잘못되었습니다.", e);
     }
     
     let currentUser = null;
     const MAX_RANKING_COUNT = 30; // 랭킹 최대 표시 인원 설정
 
-    // --- Helper: 실행 환경에 따라 올바른 DB 경로 가져오기 ---
+    // --- Helper: DB 경로 가져오기 ---
     function getScoresCollection() {
         if (isCanvasEnv) {
             // [내부 규칙] artifacts/{appId}/public/data/scores
@@ -456,17 +374,15 @@
                 docs.push({ id: doc.id, ...doc.data() });
             });
             docs.sort((a, b) => b.score - a.score);
-            return docs; // 30개만 보여줄 것이므로, 모두 가져와서 정렬한 뒤에 잘라서 반환
+            return docs;
         } catch (e) {
             console.error("Fetch error:", e);
             return [];
         }
     }
 
-    // --- [수정] 30위 초과하는 항목을 삭제하도록 로직 변경 ---
     async function cleanupOldScores(allScores) {
         if (allScores.length > MAX_RANKING_COUNT) {
-            // 상위 30개는 남기고, 그 이후 항목들을 삭제
             const toDelete = allScores.slice(MAX_RANKING_COUNT); 
             const deletePromises = toDelete.map(s => 
                 deleteDoc(doc(getScoresCollection(), s.id))
@@ -481,7 +397,6 @@
         if (!currentUser || !db) return;
         ui.loading.classList.remove('display-none');
         try {
-            // 리플레이 데이터를 JSON 문자열로 저장하여 Firestore의 크기 제약 및 구조 문제를 회피
             await addDoc(getScoresCollection(), {
                 score: score,
                 initials: initials,
@@ -492,7 +407,6 @@
             await refreshHighScores(); 
         } catch (e) {
             console.error("Save error:", e);
-            // alert 대신 콘솔 로그 사용
             console.error("Save Failed. (If exported, check Firebase Rules and Replay Data Size)"); 
         } finally {
             ui.loading.classList.add('display-none');
@@ -500,7 +414,6 @@
     }
 
     async function refreshHighScores() {
-        // 모든 점수를 가져와서 정렬하고, 30위 초과하는 항목을 정리합니다.
         const allScores = await fetchTopScores();
         highScores = await cleanupOldScores(allScores);
         displayHighScores();
@@ -508,40 +421,94 @@
 
     initAuth();
 
-
-    /**
-     * NEON STACK RHYTHM TOWER (속도 복원 및 블록 비율 1/3 적용)
-     */
+    // =========================================================================
+    // GAME CORE CONFIGURATION & VARIABLES
+    // =========================================================================
     
-    // --- [추가] 기준 해상도 및 속도/비율 상수 정의 ---
-    const REF_WIDTH = 400;  // 기준 너비 (이 너비에서 CFG 값이 정의됨)
-    const REF_HEIGHT = 600; // 기준 높이
-    const SPEED_FACTOR = 0.81; // [수정] 전체 속도 10% 추가 감소 (0.9 * 0.9 = 0.81)
+    // --- 1. [기준 해상도] 1080x1920 ---
+    const REF_WIDTH = 1080;  // 기준 너비 (Reference Width)
+    const REF_HEIGHT = 1920; // 기준 높이 (Reference Height)
 
-    // 기준 물리 상수 (Reference Configuration)
-    const CFG_REF = {
-        // [수정 반영] 블록 너비 10% 추가 증가 (1.1 * 1.1 = 1.21)
-        baseWidthRatio: 1.21,
-        // [이전 수정 반영] 블록 높이 10% 감소 (40 * 0.9 = 36)
-        blockHeight: 40 * 0.9, 
-        // [수정 반영] 초기 이동 속도 10% 추가 감소 (450 * 0.9 * 0.9 = 364.5)
-        startSpeed: 450 * 0.9 * 0.9, 
-        // [이전 수정 반영] 속도 증가량 10% 감소 (7.5 * 0.9 = 6.75)
-        speedInc: 7.5 * 0.9,
+    // --- 리플레이 데이터 스케일링을 위한 이전 기준 너비 (저장 시 사용되었던 400px 기준) ---
+    const PREV_REF_WIDTH_FOR_REPLAY = 400;
+
+    // --- 2. [블록 너비 기준] 캔버스 너비의 1/3 ---
+    const BASE_WIDTH = REF_WIDTH / 3; // 1080 / 3 = 360
+    
+    // 나머지 상수들은 BASE_WIDTH가 322.666일 때를 기준으로 SCALE_ADJUST 되어 있었음.
+    const OLD_BASE_WIDTH_REF = 322.666;
+    const SIZE_RATIO_ADJUST = BASE_WIDTH / OLD_BASE_WIDTH_REF; // 360 / 322.666 = 1.1158...
+
+    const OLD_BLOCK_HEIGHT = 72;                
+    const OLD_START_SPEED = 729;                
+    const OLD_SPEED_INC = 12.15;                
+    const OLD_PERFECT_TOL = 10;                 
+    const OLD_STAR_SPEED = 72.9;                
+    const OLD_GRAVITY = 4374;                   
+    const OLD_DEBRIS_ROT = 24.3;                
+    const OLD_PARTICLE_DECAY = 4.86;            
+
+    // 새로운 1080x1920 기준 상수 (사이즈는 새 BASE_WIDTH에 맞춤, 속도는 기존 조정치를 유지)
+    const BLOCK_HEIGHT = OLD_BLOCK_HEIGHT * SIZE_RATIO_ADJUST; // 높이는 너비 비율에 맞춰 조정
+    
+    const START_SPEED = OLD_START_SPEED;
+    const SPEED_INC = OLD_SPEED_INC;
+    const PERFECT_TOL = OLD_PERFECT_TOL; 
+    const STAR_SPEED = OLD_STAR_SPEED;
+    const GRAVITY = OLD_GRAVITY; 
+    const DEBRIS_ROT = OLD_DEBRIS_ROT; 
+    const PARTICLE_DECAY = OLD_PARTICLE_DECAY;
+
+    // --- 동적으로 조정된 값을 저장할 변수 ---
+    let game_config = {
+        baseWidth: 0,
+        blockHeight: 0,
+        startSpeed: 0,
+        speedInc: 0,
+        perfectTol: 0,
+        starSpeed: 0,
+        gravity: 0,
+        debrisRot: 0,
+        particleDecay: 0,
         
-        perfectTol: 5,
-        recoveryRate: 0.10, 
+        recoveryRate: 0.10,
         shiningProb: 0.05,
-        starCount: 600, 
-        starSpeed: 45, 
-        gravity: 2700,
-        debrisRot: 15,
-        particleDecay: 3.0
+        starCount: 600
     };
 
+    // --- 게임 상태 변수 ---
+    let game = {
+        state: 'intro', 
+        blocks: [],
+        debris: [],
+        particles: [],
+        stars: [],
+        score: 0,
+        combo: 0,
+        cameraY: 0,
+        baseHue: 0,
+        current: null, // 현재 움직이는 블록
+        width: 0,
+        height: 0,
+        flashAlpha: 0,
+        replayData: [],
+        replayQueue: [],
+        replayIndex: 0,
+        currentSong: null,
+        replayStartTime: 0, 
+        replayCurrentTime: 0 
+    };
+    let highScores = [];
+    let lastTime = 0;
+
+    // =========================================================================
+    // UI ELEMENTS & HANDLERS
+    // =========================================================================
     const canvas = document.getElementById('gameCanvas');
     const wrapper = document.getElementById('game-wrapper');
     const ctx = canvas.getContext('2d', { alpha: false });
+
+    // UI 요소 맵핑 (코드를 깔끔하게 정리)
     const ui = {
         score: document.getElementById('score'),
         combo: document.getElementById('combo-msg'),
@@ -559,88 +526,20 @@
         loading: document.getElementById('loading-indicator')
     };
 
-    // --- Delta Time Config (게임 내에서 동적으로 조정될 CFG) ---
-    // All units converted to Per Second
-    let CFG = {
-        blockHeight: 0,
-        baseWidth: 0, 
-        startSpeed: 0,
-        speedInc: 0,
-        perfectTol: 0,
-        recoveryRate: CFG_REF.recoveryRate, // 비율에 관계없이 일정
-        shiningProb: CFG_REF.shiningProb, // 비율에 관계없이 일정
-        starCount: CFG_REF.starCount, // 갯수는 일정
-        starSpeed: 0,
-        gravity: 0,
-        debrisRot: 0,
-        particleDecay: 0
-    };
-
-    let game = {
-        state: 'intro', 
-        blocks: [],
-        debris: [],
-        particles: [],
-        stars: [],
-        score: 0,
-        combo: 0,
-        cameraY: 0,
-        baseHue: 0,
-        current: { x: 0, y: 0, w: 0, h: 0, hue: 0, dir: 1, speed: 0, isShining: false },
-        width: 0,
-        height: 0,
-        flashAlpha: 0,
-        replayData: [],
-        replayQueue: [],
-        replayIndex: 0,
-        currentSong: null,
-        replayStartTime: 0, 
-        replayCurrentTime: 0 
-    };
-    let highScores = [];
-    let lastTime = 0;
-
+    // =========================================================================
+    // AUDIO SYSTEM
+    // =========================================================================
     const SONGS = [
-        {
-            title: "Gymnopédie No.1 - Erik Satie",
-            notes: [369.99, 440.00, 392.00, 369.99, 277.18, 246.94, 277.18, 293.66, 369.99, 440.00, 392.00, 369.99, 277.18, 246.94, 220.00, 293.66]
-        },
-        {
-            title: "Clair de Lune - Claude Debussy",
-            notes: [349.23, 311.13, 277.18, 261.63, 233.08, 261.63, 233.08, 207.65, 277.18, 311.13, 349.23, 415.30, 369.99, 349.23, 311.13, 277.18]
-        },
-        {
-            title: "Gnossienne No.1 - Erik Satie",
-            notes: [369.99, 440.00, 392.00, 369.99, 440.00, 392.00, 369.99, 293.66, 369.99, 293.66, 246.94, 293.66, 369.99, 392.00, 369.99, 392.00]
-        },
-        {
-            title: "Träumerei - Robert Schumann",
-            notes: [261.63, 349.23, 329.63, 349.23, 440.00, 523.25, 349.23, 440.00, 392.00, 261.63, 466.16, 440.00, 392.00, 349.23, 329.63, 293.66]
-        },
-        {
-            title: "Salut d'Amour - Edward Elgar",
-            notes: [329.63, 415.30, 493.88, 329.63, 554.37, 493.88, 440.00, 415.30, 369.99, 329.63, 369.99, 440.00, 415.30, 493.88, 415.30, 369.99]
-        },
-        {
-            title: "Air on the G String - J.S. Bach",
-            notes: [369.99, 329.63, 293.66, 277.18, 246.94, 440.00, 392.00, 369.99, 329.63, 293.66, 329.63, 369.99, 440.00, 392.00, 369.99, 329.63]
-        },
-        {
-            title: "Nocturne Op.9 No.2 - Frédéric Chopin",
-            notes: [466.16, 392.00, 349.23, 392.00, 311.13, 392.00, 466.16, 392.00, 349.23, 311.13, 261.63, 311.13, 349.23, 392.00, 466.16, 523.25]
-        },
-        {
-            title: "Moonlight Sonata - L.v. Beethoven",
-            notes: [207.65, 277.18, 329.63, 207.65, 277.18, 329.63, 207.65, 277.18, 329.63, 207.65, 277.18, 329.63, 207.65, 277.18, 329.63, 207.65]
-        },
-        {
-            title: "The Swan - Camille Saint-Saëns",
-            notes: [392.00, 369.99, 493.88, 440.00, 293.66, 329.63, 369.99, 392.00, 369.99, 329.63, 293.66, 246.94, 293.66, 329.63, 369.99, 392.00]
-        },
-        {
-            title: "Liebestraum No.3 - Franz Liszt",
-            notes: [261.63, 311.13, 415.30, 523.25, 622.25, 523.25, 415.30, 311.13, 261.63, 311.13, 415.30, 523.25, 622.25, 523.25, 415.30, 311.13]
-        }
+        { title: "Gymnopédie No.1 - Erik Satie", notes: [369.99, 440.00, 392.00, 369.99, 277.18, 246.94, 277.18, 293.66, 369.99, 440.00, 392.00, 369.99, 277.18, 246.94, 220.00, 293.66] },
+        { title: "Clair de Lune - Claude Debussy", notes: [349.23, 311.13, 277.18, 261.63, 233.08, 261.63, 233.08, 207.65, 277.18, 311.13, 349.23, 415.30, 369.99, 349.23, 311.13, 277.18] },
+        { title: "Gnossienne No.1 - Erik Satie", notes: [369.99, 440.00, 392.00, 369.99, 440.00, 392.00, 369.99, 293.66, 369.99, 293.66, 246.94, 293.66, 369.99, 392.00, 369.99, 392.00] },
+        { title: "Träumerei - Robert Schumann", notes: [261.63, 349.23, 329.63, 349.23, 440.00, 523.25, 349.23, 440.00, 392.00, 261.63, 466.16, 440.00, 392.00, 349.23, 329.63, 293.66] },
+        { title: "Salut d'Amour - Edward Elgar", notes: [329.63, 415.30, 493.88, 329.63, 554.37, 493.88, 440.00, 415.30, 369.99, 329.63, 369.99, 440.00, 415.30, 493.88, 415.30, 369.99] },
+        { title: "Air on the G String - J.S. Bach", notes: [369.99, 329.63, 293.66, 277.18, 246.94, 440.00, 392.00, 369.99, 329.63, 293.66, 329.63, 369.99, 440.00, 392.00, 369.99, 329.63] },
+        { title: "Nocturne Op.9 No.2 - Frédéric Chopin", notes: [466.16, 392.00, 349.23, 392.00, 311.13, 392.00, 466.16, 392.00, 349.23, 311.13, 261.63, 311.13, 349.23, 392.00, 466.16, 523.25] },
+        { title: "Moonlight Sonata - L.v. Beethoven", notes: [207.65, 277.18, 329.63, 207.65, 277.18, 329.63, 207.65, 277.18, 329.63, 207.65, 277.18, 329.63, 207.65, 277.18, 329.63, 207.65] },
+        { title: "The Swan - Camille Saint-Saëns", notes: [392.00, 369.99, 493.88, 440.00, 293.66, 329.63, 369.99, 392.00, 369.99, 329.63, 293.66, 246.94, 293.66, 329.63, 369.99, 392.00] },
+        { title: "Liebestraum No.3 - Franz Liszt", notes: [261.63, 311.13, 415.30, 523.25, 622.25, 523.25, 415.30, 311.13, 261.63, 311.13, 415.30, 523.25, 622.25, 523.25, 415.30, 311.13] }
     ];
 
     const AudioSys = {
@@ -687,13 +586,16 @@
         }
     };
     
+    // =========================================================================
+    // GAME LOGIC: SCALING & INITIALIZATION
+    // =========================================================================
+
     function displayHighScores() {
         ui.scoreList.innerHTML = '';
         if (highScores.length === 0) {
             ui.scoreList.innerHTML = '<li style="color:#aaa; text-align:center;">No records yet.</li>';
             return;
         }
-        // 랭킹은 cleanupOldScores에서 이미 MAX_RANKING_COUNT개로 정리되어 있으므로, 모두 표시합니다.
         highScores.forEach((score, index) => {
             const li = document.createElement('li');
             li.innerHTML = `
@@ -707,7 +609,6 @@
                 e.stopPropagation(); 
                 if(score.replayData) {
                     try {
-                        // DB에서 가져온 JSON 문자열을 다시 객체로 변환
                         const replayData = typeof score.replayData === 'string' ? JSON.parse(score.replayData) : score.replayData;
                         startReplay(replayData); 
                     } catch (error) {
@@ -720,7 +621,6 @@
     }
 
     function promptForInitials(newScore) {
-        // 기존 modal이 있으면 제거
         const existingModal = document.getElementById('initialsModal');
         if (existingModal) existingModal.remove();
 
@@ -738,7 +638,6 @@
             btn.innerText = "SAVING...";
             btn.disabled = true;
 
-            // 저장 시 리플레이 데이터는 game.replayData를 사용합니다.
             await addScoreToDB(newScore, val, game.replayData);
             
             modal.remove();
@@ -753,26 +652,24 @@
         input.onkeydown = (e) => { if(e.key==='Enter') submit(); };
     }
 
-    // --- [수정] 반응형 로직 개선 및 모든 요소 스케일링 적용 ---
+    // --- 반응형 및 스케일링 로직 ---
     function resize() {
-        const ASPECT_RATIO = REF_WIDTH / REF_HEIGHT; // 원하는 게임 화면 비율 (4:6)
+        const ASPECT_RATIO = REF_WIDTH / REF_HEIGHT;
         const parentW = window.innerWidth;
         const parentH = window.innerHeight;
         let w, h;
 
         if (parentW / parentH > ASPECT_RATIO) {
-            // 현재 창의 가로가 더 길면 -> 높이에 맞춰 너비 계산
             h = parentH;
             w = h * ASPECT_RATIO;
         } else {
-            // 현재 창의 세로가 더 길면 -> 너비에 맞춰 높이 계산
             w = parentW;
             h = w / ASPECT_RATIO;
         }
 
-        // 최대 크기를 넘지 않도록 제한
-        const MAX_WIDTH = 600; 
-        const MAX_HEIGHT = 900;
+        // 최대 크기를 REF_WIDTH x REF_HEIGHT으로 제한
+        const MAX_WIDTH = REF_WIDTH; 
+        const MAX_HEIGHT = REF_HEIGHT;
         if (w > MAX_WIDTH) {
             w = MAX_WIDTH;
             h = MAX_HEIGHT;
@@ -785,51 +682,43 @@
         canvas.width = w; 
         canvas.height = h;
 
-        // --- [추가] 스케일 팩터 계산 및 CFG 업데이트 ---
-        const scale = w / REF_WIDTH;
-        const speedScale = scale * SPEED_FACTOR; // 속도는 크기 변화와 전체 속도 감소(0.81)를 모두 적용
+        // --- 스케일 팩터 계산 ---
+        const scale = w / REF_WIDTH; 
 
-        // 1. 블록 너비 (캔버스 너비의 1/3, CFG_REF.baseWidthRatio 반영)
-        CFG.baseWidth = Math.floor(w / 3 * CFG_REF.baseWidthRatio); 
+        // --- game_config 업데이트 ---
+        game_config.baseWidth = BASE_WIDTH * scale;
+        game_config.blockHeight = BLOCK_HEIGHT * scale;
+        game_config.perfectTol = PERFECT_TOL * scale;
         
-        // 2. 물리 상수를 스케일에 맞게 조정 (CFG_REF의 변경된 값 사용)
-        CFG.blockHeight = CFG_REF.blockHeight * scale;
-        CFG.perfectTol = CFG_REF.perfectTol * scale;
+        game_config.startSpeed = START_SPEED * scale;
+        game_config.speedInc = SPEED_INC * scale;
+        game_config.starSpeed = STAR_SPEED * scale;
         
-        // 3. 속도 관련 상수를 스케일과 10% 감소에 맞게 조정
-        CFG.startSpeed = CFG_REF.startSpeed * speedScale;
-        CFG.speedInc = CFG_REF.speedInc * speedScale;
-        CFG.starSpeed = CFG_REF.starSpeed * speedScale;
-        
-        // 4. 가속도 관련 상수를 스케일과 10% 감소에 맞게 조정 (가속도는 거리/시간^2 이므로 속도와 동일하게 스케일링)
-        CFG.gravity = CFG_REF.gravity * speedScale; 
-        CFG.debrisRot = CFG_REF.debrisRot * speedScale; 
-        CFG.particleDecay = CFG_REF.particleDecay * speedScale; 
+        game_config.gravity = GRAVITY * scale; 
+        game_config.debrisRot = DEBRIS_ROT * scale; 
+        game_config.particleDecay = PARTICLE_DECAY * scale; 
 
         initStars();
     }
     
     function initStars() {
         game.stars = [];
-        for (let i = 0; i < CFG.starCount; i++) {
+        for (let i = 0; i < game_config.starCount; i++) {
+            // 별 크기는 400px 기준으로 스케일링 (이전 기준 해상도 너비 400px 대비)
+            const STAR_SIZE_BASE = 400; 
+
             game.stars.push({
                 x: Math.random() * game.width, y: Math.random() * game.height,
-                // 별 크기도 스케일에 맞춰 조정
-                size: (Math.random() * 2 + 0.5) * (game.width / REF_WIDTH), 
-                speed: Math.random() * CFG.starSpeed + 0.2,
+                size: (Math.random() * 2 + 0.5) * (game.width / STAR_SIZE_BASE), 
+                speed: Math.random() * game_config.starSpeed + 0.2,
                 opacity: Math.random() * 0.5 + 0.3, twinkleSpeed: Math.random() * 0.05 + 0.01
             });
         }
     }
-    window.addEventListener('resize', resize);
-    // 게임 시작 전에 resize를 호출하여 CFG.baseWidth를 초기화
-    resize();
 
     function initGame(isDemo = false) {
         game.state = isDemo ? 'demo' : 'playing';
         game.blocks = []; game.debris = []; game.particles = []; 
-        
-        // 리플레이 시작 시간 및 경과 시간 초기화
         game.replayData = [];
         game.replayStartTime = performance.now();
         game.replayCurrentTime = 0;
@@ -837,10 +726,7 @@
         game.score = 0; game.combo = 0; game.cameraY = 0;
         game.baseHue = Math.floor(Math.random() * 360); game.flashAlpha = 0;
         
-        if (!isDemo || !game.currentSong) { 
-             // 노래가 없다면 랜덤으로 선택
-             game.currentSong = SONGS[Math.floor(Math.random() * SONGS.length)]; 
-        }
+        if (!isDemo || !game.currentSong) { game.currentSong = SONGS[Math.floor(Math.random() * SONGS.length)]; }
 
         ui.score.innerText = "0"; ui.score.classList.remove('score-pop'); 
         
@@ -858,8 +744,13 @@
         ui.replayIndicator.classList.add('display-none');
         ui.closeReplayBtn.classList.add('display-none');
 
-        // CFG.baseWidth를 사용하여 블록을 가운데에 배치
-        const baseBlock = { x: (game.width-CFG.baseWidth)/2, y: game.height-150, w: CFG.baseWidth, h: CFG.blockHeight, hue: game.baseHue };
+        // game_config.baseWidth와 blockHeight 사용
+        // 블록 두 칸 아래로 내려서 시작 위치 조정
+        const initial_offset = 150; // 기존 하단 여백 기준값
+        const offset_adjustment = 2; // 블록 2칸만큼 아래로 내림
+        const startY = game.height - initial_offset + (offset_adjustment * game_config.blockHeight);
+
+        const baseBlock = { x: (game.width-game_config.baseWidth)/2, y: startY, w: game_config.baseWidth, h: game_config.blockHeight, hue: game.baseHue };
         game.blocks.push(baseBlock);
 
         spawnBlock();
@@ -870,15 +761,17 @@
     function spawnBlock() {
         const prev = game.blocks[game.blocks.length-1];
         game.baseHue = (game.baseHue + 10) % 360;
-        const isShining = Math.random() < CFG.shiningProb;
+        const isShining = Math.random() < game_config.shiningProb;
         
-        // Calculate speed based on score (time based)
         const cycle = game.score % 60;
         const speedFactor = cycle < 30 ? cycle : (60 - cycle);
-        // 속도 계산 로직은 동적으로 조정된 CFG 값을 사용
-        const currentSpeed = CFG.startSpeed + (speedFactor * CFG.speedInc);
+        // game_config.startSpeed와 game_config.speedInc 사용
+        const currentSpeed = game_config.startSpeed + (speedFactor * game_config.speedInc);
 
-        game.current = { x: 0, y: prev.y - CFG.blockHeight, w: prev.w, h: CFG.blockHeight, hue: game.baseHue, dir: Math.random()<0.5?1:-1, speed: currentSpeed, isShining: isShining };
+        game.current = { x: 0, y: prev.y - game_config.blockHeight, w: prev.w, h: game_config.blockHeight, hue: game.baseHue, dir: Math.random()<0.5?1:-1, speed: currentSpeed, isShining: isShining };
+        
+        // 블록이 움직이는 최대 범위 설정 (캔버스 경계)
+        // 블록의 시작 위치는 캔버스 밖으로 설정하여 움직임을 시작합니다.
         game.current.x = game.current.dir === 1 ? -game.current.w : game.width;
     }
 
@@ -887,12 +780,10 @@
         const curr = game.current; const prev = game.blocks[game.blocks.length-1];
         const dist = curr.x - prev.x; const absDist = Math.abs(dist);
         
-        // 리플레이 데이터에 블록을 놓은 시점의 **경과 시간**을 기록
         const timeSinceStart = performance.now() - game.replayStartTime;
         game.replayData.push({ time: timeSinceStart, x: curr.x, y: curr.y, w: curr.w, h: curr.h, hue: curr.hue, dir: curr.dir, speed: curr.speed, isShining: curr.isShining });
 
         if (absDist >= curr.w) {
-            // 실패
             game.debris.push(createDebris(curr.x, curr.y, curr.w, curr.h, curr.hue));
             if (game.state === 'demo') { initGame(true); } else { gameOver(); }
             return;
@@ -900,17 +791,16 @@
 
         let newX = curr.x; let newW = curr.w; let isShiningPerfect = false;
 
-        if (absDist <= CFG.perfectTol) {
+        if (absDist <= game_config.perfectTol) {
             newX = prev.x; newW = prev.w; game.combo++;
             let growth = 0;
-            if (curr.isShining) { growth = CFG.baseWidth - newW; newW = CFG.baseWidth; isShiningPerfect = true; }
-            else if (newW < CFG.baseWidth) {
-                const potentialW = Math.min(newW + (CFG.baseWidth * CFG.recoveryRate), CFG.baseWidth);
+            if (curr.isShining) { growth = game_config.baseWidth - newW; newW = game_config.baseWidth; isShiningPerfect = true; }
+            else if (newW < game_config.baseWidth) {
+                const potentialW = Math.min(newW + (game_config.baseWidth * game_config.recoveryRate), game_config.baseWidth);
                 growth = potentialW - newW; newW = potentialW;
             }
             if (growth > 0) {
                 const blockCenter = newX + prev.w / 2; const screenCenter = game.width / 2;
-                // 블록을 중앙에 가깝게 유지하려는 로직
                 if (Math.abs(blockCenter - screenCenter) < 1) { newX -= growth / 2; } 
                 else if (blockCenter < screenCenter) { } else { newX -= growth; }
             }
@@ -919,10 +809,10 @@
             game.combo = 0; newW = curr.w - absDist;
             if (dist > 0) { newX = curr.x; game.debris.push(createDebris(curr.x + newW, curr.y, absDist, curr.h, curr.hue)); }
             else { newX = prev.x; game.debris.push(createDebris(curr.x, curr.y, absDist, curr.h, curr.hue)); }
-            createEdgeBurst(newX, curr.y, newW, CFG.blockHeight, curr.hue);
+            createEdgeBurst(newX, curr.y, newW, game_config.blockHeight, curr.hue);
         }
 
-        game.blocks.push({ x: newX, y: curr.y, w: newW, h: CFG.blockHeight, hue: curr.hue });
+        game.blocks.push({ x: newX, y: curr.y, w: newW, h: game_config.blockHeight, hue: curr.hue });
         game.score++; ui.score.innerText = game.score; triggerScoreEffect();
         AudioSys.playStack(game.combo); 
         spawnBlock();
@@ -930,7 +820,8 @@
 
     function triggerScoreEffect() {
         ui.score.classList.remove('score-pop'); void ui.score.offsetWidth; ui.score.classList.add('score-pop');
-        const cx = game.width / 2; const cy = game.height * 0.15;
+        const cx = game.width / 2; 
+        const cy = game.height * 0.10; // 점수 컨테이너의 위치 (10%)에 맞춰 파티클 발생 위치 조정
         for (let i = 0; i < 15; i++) {
             const angle = Math.random() * Math.PI * 2; const speed = Math.random() * 5 + 2;
             game.particles.push({ x: cx, y: cy, vx: Math.cos(angle) * speed, vy: Math.sin(angle) * speed, life: 1.0, color: '#FFEA00', type: 'burst' });
@@ -947,26 +838,27 @@
     }
 
     function createDebris(x, y, w, h, hue) {
-        // 동적으로 조정된 CFG.gravity 사용
-        // vx, vy 값도 스케일링 필요
-        const scale = game.width / REF_WIDTH;
-        const speedScale = scale * SPEED_FACTOR;
+        // 스케일링된 game_config 값 사용
+        const scale = game.width / REF_WIDTH; // 너비 스케일
+        const speedScale = game.width / REF_WIDTH; // 속도 스케일
+
         return { 
             x: x, y: y, w: w, h: h, hue: hue, 
             vx: (Math.random()-0.5) * (100 * speedScale), 
             vy: (Math.random()-0.5) * (100 * speedScale) - (67 * speedScale), 
-            rot: 0, rotSpeed: (Math.random()-0.5) * CFG.debrisRot / 15 * 10 
+            rot: 0, rotSpeed: (Math.random()-0.5) * game_config.debrisRot / (DEBRIS_ROT/20) * 10 
         };
     }
 
     function createEdgeBurst(x, y, w, h, hue) {
         const scale = game.width / REF_WIDTH;
-        const speedScale = scale * SPEED_FACTOR;
+        const speedScale = scale; // 속도 스케일
+
         const perimeter = (w + h) * 2; 
-        const count = Math.min(40, Math.floor(perimeter / (6 * scale))); // 파티클 밀도는 비슷하게 유지
+        const count = Math.min(40, Math.floor(perimeter / (6 * scale))); 
         for (let i = 0; i < count; i++) {
             const pos = Math.random() * perimeter; let px, py, vx, vy; 
-            const speed = Math.random() * (67 * speedScale) + (33 * speedScale); // 속도 범위 조정
+            const speed = Math.random() * (67 * speedScale) + (33 * speedScale); 
 
             if (pos < w) { px = x + pos; py = y; vx = (Math.random() - 0.5) * speed; vy = -speed; } 
             else if (pos < w + h) { px = x + w; py = y + (pos - w); vx = speed; vy = (Math.random() - 0.5) * speed; } 
@@ -984,8 +876,8 @@
             ui.score.style.color = '#fff'; ui.score.style.transform = 'scale(1.1)';
             setTimeout(() => { ui.combo.style.opacity = '0'; ui.combo.style.transform = 'scale(0.5)'; }, 500);
         }
-        createEdgeBurst(x, y, w, CFG.blockHeight, game.current.hue);
-        game.particles.push({ type: 'radial-wave', x: x+w/2, y: y+CFG.blockHeight/2, size: 0, max_size: w*1.5, life: 1.0, hue: game.current.hue });
+        createEdgeBurst(x, y, w, game_config.blockHeight, game.current.hue);
+        game.particles.push({ type: 'radial-wave', x: x+w/2, y: y+game_config.blockHeight/2, size: 0, max_size: w*1.5, life: 1.0, hue: game.current.hue });
     }
 
     function gameOver() {
@@ -1005,10 +897,14 @@
         }, 800);
     }
 
+    // =========================================================================
+    // REPLAY LOGIC
+    // =========================================================================
+
     function startReplay(data) {
         if(!data || !data.length) return;
         game.state = 'replay';
-        game.replayQueue = data; // 이미 객체 배열입니다.
+        game.replayQueue = data;
         game.replayIndex = 0;
         game.blocks = []; game.debris = []; game.particles = []; game.score = 0; game.cameraY = 0;
         ui.score.innerText = "0";
@@ -1016,75 +912,66 @@
         ui.rankingBoard.style.display = 'none'; 
         ui.replayIndicator.classList.remove('display-none');
         ui.closeReplayBtn.classList.remove('display-none');
-        const startX = (game.width - CFG.baseWidth) / 2;
-        // 첫 번째 블록은 항상 고정된 위치에 (base block)
-        game.blocks.push({ x: startX, y: game.height - 150, w: CFG.baseWidth, h: CFG.blockHeight, hue: game.replayQueue[0].hue - 10 });
+        const startX = (game.width - game_config.baseWidth) / 2;
         
-        // --- 리플레이 타이밍 초기화 ---
-        // 리플레이 시작 시간을 0으로 설정하여 현재 프레임 시간을 기준으로 상대적인 경과 시간을 계산
+        // 리플레이 시작 시 초기 블록 위치 조정
+        const initial_offset = 150; // 기존 하단 여백 기준값
+        const offset_adjustment = 2; // 블록 2칸만큼 아래로 내림
+        const startY = game.height - initial_offset + (offset_adjustment * game_config.blockHeight);
+
+        game.blocks.push({ x: startX, y: startY, w: game_config.baseWidth, h: game_config.blockHeight, hue: game.replayQueue[0].hue - 10 });
+        
         game.replayStartTime = performance.now();
         game.replayCurrentTime = 0;
         prepareReplayStep();
     }
+    
     function stopReplay() { initGame(true); }
 
     function prepareReplayStep() {
         if(game.replayIndex >= game.replayQueue.length) {
-            // 리플레이 종료 시, 데모 모드로 돌아갑니다.
             setTimeout(stopReplay, 1000); 
             return;
         }
         const d = game.replayQueue[game.replayIndex];
         const prev = game.blocks[game.blocks.length-1];
 
-        // 리플레이 데이터의 물리량을 현재 스케일에 맞게 조정
-        const scale = game.width / REF_WIDTH;
-        // d.x, d.w는 플레이 당시의 픽셀 값이라고 가정하고, 현재 스케일에 맞춰 조정
-        const scaled_d_x = d.x * scale;
-        const scaled_d_w = d.w * scale;
-
+        // 리플레이 데이터의 픽셀 값은 이전에 400px 기준으로 기록되었다고 가정하고,
+        // 현재 화면의 너비(game.width)에 맞게 스케일링합니다.
+        
+        const scaled_d_x = d.x * (game.width / PREV_REF_WIDTH_FOR_REPLAY); 
+        const scaled_d_w = d.w * (game.width / PREV_REF_WIDTH_FOR_REPLAY); 
+        
         game.current = { 
-            x: d.dir===1 ? -scaled_d_w : game.width, // 화면 밖에서 시작
-            targetX: scaled_d_x, // 블록이 멈춰야 할 최종 x 위치 (스케일링된 값)
-            y: prev.y - CFG.blockHeight, 
-            w: scaled_d_w, // 리플레이 당시의 블록 폭(w)을 현재 스케일링
-            h: CFG.blockHeight, 
+            x: d.dir===1 ? -scaled_d_w : game.width,
+            targetX: scaled_d_x,
+            y: prev.y - game_config.blockHeight, 
+            w: scaled_d_w,
+            h: game_config.blockHeight, 
             hue: d.hue, 
             dir: d.dir, 
-            // 속도도 현재 스케일에 맞게 조정 
-            // d.speed는 기록용일 뿐, 이동은 progress 기반으로 이루어집니다.
-            speed: d.speed, // 이 값은 사용되지 않고, 아래 targetTime 기반의 progress 계산이 사용됩니다.
+            speed: d.speed,
             isShining: d.isShining,
-            
             targetTime: d.time || 0,
-            
             distance: 0,
             expectedDuration: 0
         };
     }
     
-    // --- 리플레이 재생 로직: 시간 동기화 기반 (유지) ---
     function updateReplay(dt) {
         const c = game.current; 
         if (!c) return;
 
-        // 리플레이 경과 시간 업데이트 (dt: 초 단위)
-        game.replayCurrentTime += dt * 1000; // 밀리초 단위로 관리
+        game.replayCurrentTime += dt * 1000;
 
         if (game.replayCurrentTime >= c.targetTime) {
-            // 3. 목표 시간에 도달했으므로 블록을 놓는 처리를 수행
             
-            // 블록이 놓여야 할 최종 X 위치를 기록된 targetX(스케일링된 값)로 강제 이동
             c.x = c.targetX; 
-            
             const prev = game.blocks[game.blocks.length-1];
-            // dist와 absDist 계산 시, 현재 c.w 대신 prev.w를 사용해야 정확함 (놓을 때의 기준은 이전 블록)
             const dist = c.x - prev.x; 
             const absDist = Math.abs(dist);
 
-            if (absDist >= prev.w * 2) { // 실패 조건은 현재 블록 너비 기준으로 확인
-                // 이전에 'fail' 기록이 있었다는 의미 (실제 게임에서는 이 조건으로 실패가 결정됨).
-                // 여기서 c.w는 리플레이 데이터에서 온 스케일링된 w 값입니다.
+            if (absDist >= prev.w * 2) { 
                 game.debris.push(createDebris(c.x, c.y, c.w, c.h, c.hue)); 
                 AudioSys.playFail(); 
                 game.current = null;
@@ -1095,21 +982,17 @@
 
             let newX = prev.x, newW = prev.w, isP = false;
 
-            if (absDist <= CFG.perfectTol) {
-                // 성공 (PERFECT)
-                newX = prev.x; // Perfect는 이전 블록과 x 위치 동일
-                newW = prev.w; 
-                game.combo++; 
+            if (absDist <= game_config.perfectTol) {
+                newX = prev.x; newW = prev.w; game.combo++; 
                 isP = true;
                 
                 let growth = 0;
-                if(c.isShining) { growth = CFG.baseWidth - newW; newW = CFG.baseWidth; }
-                else if(newW < CFG.baseWidth) {
-                    const potentialW = Math.min(newW + (CFG.baseWidth * CFG.recoveryRate), CFG.baseWidth);
+                if(c.isShining) { growth = game_config.baseWidth - newW; newW = game_config.baseWidth; }
+                else if(newW < game_config.baseWidth) {
+                    const potentialW = Math.min(newW + (game_config.baseWidth * game_config.recoveryRate), game_config.baseWidth);
                     growth = potentialW - newW; newW = potentialW;
                 }
                 
-                // Perfect에 따른 위치 조정
                 const blockCenter = newX + prev.w / 2; const screenCenter = game.width / 2;
                 if (growth > 0) {
                     if (Math.abs(blockCenter - screenCenter) < 1) { newX -= growth / 2; } 
@@ -1118,34 +1001,28 @@
 
                 triggerPerfectEffect(newX, c.y, newW, isP);
             } else {
-                // 성공 (GOOD)
                 game.combo = 0; 
-                newW = prev.w - absDist; // 이전 블록 폭에서 잘린 만큼 뺀다.
+                newW = prev.w - absDist;
                 
-                // 자투리 블록 처리
-                if (dist > 0) { // 블록이 오른쪽으로 움직였고, 오른쪽에 자투리
+                if (dist > 0) { 
                     newX = prev.x; 
                     game.debris.push(createDebris(prev.x + newW, c.y, absDist, c.h, c.hue));
-                } else { // 블록이 왼쪽으로 움직였고, 왼쪽에 자투리
-                    newX = c.x; // 새 블록의 X 위치는 현재 c.x (targetX)
+                } else { 
+                    newX = c.x;
                     game.debris.push(createDebris(prev.x, c.y, absDist, c.h, c.hue));
                 }
-                createEdgeBurst(newX, c.y, newW, CFG.blockHeight, c.hue);
+                createEdgeBurst(newX, c.y, newW, game_config.blockHeight, c.hue);
             }
 
-            // 새 블록 스택에 추가
-            game.blocks.push({ x: newX, y: c.y, w: newW, h: CFG.blockHeight, hue: c.hue });
+            game.blocks.push({ x: newX, y: c.y, w: newW, h: game_config.blockHeight, hue: c.hue });
             game.score++; ui.score.innerText = game.score; triggerScoreEffect(); 
             AudioSys.playStack(game.combo); 
             
-            // 4. 다음 스텝 준비
             game.current = null; 
             game.replayIndex++; 
             prepareReplayStep();
             
         } else {
-            // 2. 블록 이동 (아직 목표 시간이 되지 않았다면)
-            
             const prevTime = game.replayIndex > 0 ? game.replayQueue[game.replayIndex - 1].time : 0;
             const elapsed = game.replayCurrentTime - prevTime;
             const duration = c.targetTime - prevTime;
@@ -1157,12 +1034,14 @@
                 progress = 1;
             }
 
-            // 블록의 시작 위치는 prepareReplayStep에서 설정한 값입니다.
             const startX = c.dir===1 ? -c.w : game.width;
             c.x = startX + (c.targetX - startX) * progress;
         }
     }
 
+    // =========================================================================
+    // DRAWING LOOP
+    // =========================================================================
 
     function getGradient(ctx, x, y, w, h, hue) {
         const grad = ctx.createLinearGradient(x, y, x + w, y + h);
@@ -1179,9 +1058,9 @@
         let dt = (timestamp - lastTime) / 1000;
         lastTime = timestamp;
         
-        // Cap DT to prevent huge jumps (e.g. tab switch)
         if (dt > 0.1) dt = 0.1;
 
+        // --- 1. 배경 그리기 ---
         ctx.fillStyle = '#050505'; ctx.fillRect(0, 0, game.width, game.height);
         ctx.fillStyle = '#fff';
         for(let s of game.stars) {
@@ -1190,14 +1069,28 @@
             ctx.beginPath(); ctx.arc(s.x, s.y, s.size/2, 0, Math.PI*2); ctx.fill(); ctx.globalAlpha=1;
         }
 
+        // --- 2. 카메라 위치 업데이트 ---
         if(game.blocks.length > 0) {
-            // 카메라 높이도 스케일에 맞게 조정
-            const camera_ref_pos = 150 * (game.height / REF_HEIGHT); // 하단에서 150px
-            const ty = (game.blocks.length*CFG.blockHeight)-(game.height - camera_ref_pos); 
-            // Camera lerp with DT (approx exponential decay)
-            game.cameraY += (Math.max(0, ty)-game.cameraY) * 5.0 * dt; 
+            // 카메라 목표 위치를 캔버스 높이의 25% 지점으로 설정
+            const camera_target_y_percent = 0.25; 
+            
+            // 캔버스 높이의 25% 지점 픽셀 값
+            const camera_target_y_pos = game.height * camera_target_y_percent; 
+            
+            // 다음 블록이 놓일 캔버스 기준 Y 좌표
+            const prevBlockY = game.blocks[game.blocks.length - 1].y;
+            const nextBlockY = prevBlockY - game_config.blockHeight; 
+            
+            // 다음 블록이 놓일 위치 (nextBlockY)를 화면 상단 camera_target_y_pos에 보이게 하려면, 
+            // 카메라 Y를 (nextBlockY - camera_target_y_pos) 만큼 이동시켜야 함.
+            const ty = nextBlockY - camera_target_y_pos;
+
+            // Camera lerp (approx exponential decay)
+            // Math.max(0, ty)를 사용하여 카메라가 시작 지점(0) 이하로 내려가지 않도록 함
+            game.cameraY += (Math.max(0, -ty) - game.cameraY) * 5.0 * dt; 
         }
 
+        // --- 3. 스택 블록 그리기 ---
         for(let b of game.blocks) {
             const dy = b.y+game.cameraY; if(dy>game.height) continue;
             ctx.shadowBlur=15; ctx.shadowColor=`hsl(${b.hue},100%,50%)`; 
@@ -1206,11 +1099,22 @@
             ctx.shadowBlur=0; ctx.fillStyle=`hsla(${b.hue},100%,80%,0.6)`; ctx.fillRect(b.x, dy, b.w, 4);
         }
 
+        // --- 4. 현재 움직이는 블록 업데이트 및 그리기 ---
         if(game.current) {
             if(game.state==='demo') updateDemo(dt);
             else if(game.state==='playing') {
                 game.current.x += game.current.speed * game.current.dir * dt;
-                if(game.current.x > game.width+100) game.current.dir=-1; else if(game.current.x < -100-game.current.w) game.current.dir=1;
+                // 블록이 캔버스 경계를 넘어갔을 때 방향 전환
+                const max_x = game.width - game.current.w;
+                const min_x = 0;
+                
+                if (game.current.dir === 1 && game.current.x >= max_x) {
+                    game.current.dir = -1;
+                    game.current.x = max_x; // 경계에 고정
+                } else if (game.current.dir === -1 && game.current.x <= min_x) {
+                    game.current.dir = 1;
+                    game.current.x = min_x; // 경계에 고정
+                }
             } else if(game.state==='replay') updateReplay(dt);
             
             if((game.state==='playing'||game.state==='demo'||game.state==='replay') && game.current) {
@@ -1224,11 +1128,12 @@
             }
         }
 
+        // --- 5. 파편(Debris) 및 파티클 그리기 ---
         for(let i=game.debris.length-1; i>=0; i--) {
             let d = game.debris[i]; 
             d.x += d.vx * dt; 
             d.y += d.vy * dt; 
-            d.vy += CFG.gravity * dt; 
+            d.vy += game_config.gravity * dt; 
             d.rot += d.rotSpeed * dt;
             ctx.save(); ctx.translate(d.x+d.w/2, d.y+game.cameraY+d.h/2); ctx.rotate(d.rot);
             ctx.fillStyle=`hsla(${d.hue},100%,50%,0.5)`; ctx.fillRect(-d.w/2, -d.h/2, d.w, d.h); ctx.restore();
@@ -1236,12 +1141,12 @@
         }
         for(let i=game.particles.length-1; i>=0; i--) {
             let p=game.particles[i]; 
-            p.life -= CFG.particleDecay * dt;
+            p.life -= game_config.particleDecay * dt;
             if(p.life<=0) { game.particles.splice(i,1); continue; }
             
             if(p.type==='radial-wave') {
                 ctx.strokeStyle=`hsla(${p.hue},100%,80%,${p.life})`; 
-                ctx.lineWidth=3 * (game.width / REF_WIDTH); // 선 굵기도 스케일링
+                ctx.lineWidth=3 * (game.width / REF_WIDTH); // 굵기 스케일링
                 p.size += (p.max_size - p.size) * 5.0 * dt;
                 ctx.beginPath(); ctx.arc(p.x, p.y+game.cameraY, p.size, 0, Math.PI*2); ctx.stroke();
             } else {
@@ -1257,6 +1162,13 @@
         }
     }
 
+    // =========================================================================
+    // EVENT LISTENERS & ENTRY POINT
+    // =========================================================================
+    window.addEventListener('resize', resize);
+
+    // 초기 설정
+    resize();
     loop(0);
 
     ui.intro.onclick = () => {
