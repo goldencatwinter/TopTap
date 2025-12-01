@@ -508,7 +508,7 @@
 
 
     /**
-     * NEON STACK RHYTHM TOWER (DT Version 2.25x Speed)
+     * NEON STACK RHYTHM TOWER (속도 복원 및 블록 비율 1/3 적용)
      */
 
     const canvas = document.getElementById('gameCanvas');
@@ -531,21 +531,21 @@
         loading: document.getElementById('loading-indicator')
     };
 
-    // --- Delta Time Config (1.5x * 1.5x = 2.25x Faster) ---
+    // --- Delta Time Config (속도 복원) ---
     // All units converted to Per Second
     const CFG = {
         blockHeight: 40,
-        baseWidth: 220,
-        startSpeed: 675, // Was 450 -> 675 (2.25x original)
-        speedInc: 11.25, // Was 7.5 -> 11.25
+        baseWidth: 0, // 동적으로 설정될 값
+        startSpeed: 450, // 원래 속도로 복원 (Was 675 -> 450)
+        speedInc: 7.5, // 원래 속도로 복원 (Was 11.25 -> 7.5)
         perfectTol: 5,
         recoveryRate: 0.10, 
         shiningProb: 0.05,
         starCount: 600, 
-        starSpeed: 67.5, // Was 45 -> 67.5
-        gravity: 4050,   // Was 2700 -> 4050
-        debrisRot: 22.5, // Was 15 -> 22.5
-        particleDecay: 4.5 // Was 3.0 -> 4.5
+        starSpeed: 45, // 원래 속도로 복원 (Was 67.5 -> 45)
+        gravity: 2700,   // 원래 속도로 복원 (Was 4050 -> 2700)
+        debrisRot: 15, // 원래 속도로 복원 (Was 22.5 -> 15)
+        particleDecay: 3.0 // 원래 속도로 복원 (Was 4.5 -> 3.0)
     };
 
     let game = {
@@ -565,7 +565,9 @@
         replayData: [],
         replayQueue: [],
         replayIndex: 0,
-        currentSong: null 
+        currentSong: null,
+        replayStartTime: 0, // 리플레이 시작 시간을 저장할 필드 추가
+        replayCurrentTime: 0 // 리플레이 재생 경과 시간을 저장할 필드 추가
     };
     let highScores = [];
     let lastTime = 0;
@@ -723,7 +725,7 @@
         input.onkeydown = (e) => { if(e.key==='Enter') submit(); };
     }
 
-    // --- [수정] 반응형 로직 개선 (PC, 모바일 비율 유지) ---
+    // --- [수정] 반응형 로직 개선 (PC, 모바일 비율 유지 및 블록 크기 동적 계산) ---
     function resize() {
         const ASPECT_RATIO = 4 / 6; // 원하는 게임 화면 비율 (가로:세로)
         const parentW = window.innerWidth;
@@ -731,11 +733,11 @@
         let w, h;
 
         if (parentW / parentH > ASPECT_RATIO) {
-            // 현재 창의 가로가 더 길면 (데스크톱, 가로 모바일) -> 높이에 맞춰 너비 계산
+            // 현재 창의 가로가 더 길면 -> 높이에 맞춰 너비 계산
             h = parentH;
             w = h * ASPECT_RATIO;
         } else {
-            // 현재 창의 세로가 더 길면 (세로 모바일) -> 너비에 맞춰 높이 계산 (사용자가 요청한 방식)
+            // 현재 창의 세로가 더 길면 -> 너비에 맞춰 높이 계산
             w = parentW;
             h = w / ASPECT_RATIO;
         }
@@ -755,6 +757,9 @@
         canvas.width = w; 
         canvas.height = h;
 
+        // --- [추가] 블록 너비를 캔버스 너비의 1/3로 동적 설정 ---
+        CFG.baseWidth = Math.floor(w / 3); 
+
         initStars();
     }
     
@@ -769,11 +774,18 @@
         }
     }
     window.addEventListener('resize', resize);
+    // 게임 시작 전에 resize를 호출하여 CFG.baseWidth를 초기화
     resize();
 
     function initGame(isDemo = false) {
         game.state = isDemo ? 'demo' : 'playing';
-        game.blocks = []; game.debris = []; game.particles = []; game.replayData = [];
+        game.blocks = []; game.debris = []; game.particles = []; 
+        
+        // 리플레이 시작 시간 및 경과 시간 초기화
+        game.replayData = [];
+        game.replayStartTime = performance.now();
+        game.replayCurrentTime = 0;
+
         game.score = 0; game.combo = 0; game.cameraY = 0;
         game.baseHue = Math.floor(Math.random() * 360); game.flashAlpha = 0;
         
@@ -786,4 +798,451 @@
         
         if (isDemo) {
             ui.menu.classList.remove('hide');
-            ui.menu.classList.
+            ui.menu.classList.remove('game-over-mode');
+            ui.rankingBtn.classList.remove('display-none');
+            ui.btn.innerText = "PLAY";
+            ui.title.innerText = "TOP";
+        } else {
+            ui.menu.classList.add('hide');
+            ui.rankingBtn.classList.add('display-none');
+            ui.rankingBoard.style.display = 'none';
+        }
+        ui.replayIndicator.classList.add('display-none');
+        ui.closeReplayBtn.classList.add('display-none');
+
+        // CFG.baseWidth를 사용하여 블록을 가운데에 배치
+        const baseBlock = { x: (game.width-CFG.baseWidth)/2, y: game.height-150, w: CFG.baseWidth, h: CFG.blockHeight, hue: game.baseHue };
+        game.blocks.push(baseBlock);
+
+        spawnBlock();
+    }
+
+    function startGame() { initGame(false); }
+
+    function spawnBlock() {
+        const prev = game.blocks[game.blocks.length-1];
+        game.baseHue = (game.baseHue + 10) % 360;
+        const isShining = Math.random() < CFG.shiningProb;
+        
+        // Calculate speed based on score (time based)
+        const cycle = game.score % 60;
+        const speedFactor = cycle < 30 ? cycle : (60 - cycle);
+        // 속도 계산 로직은 원래대로 복원된 CFG 값을 사용
+        const currentSpeed = CFG.startSpeed + (speedFactor * CFG.speedInc);
+
+        game.current = { x: 0, y: prev.y - CFG.blockHeight, w: prev.w, h: CFG.blockHeight, hue: game.baseHue, dir: Math.random()<0.5?1:-1, speed: currentSpeed, isShining: isShining };
+        game.current.x = game.current.dir === 1 ? -game.current.w : game.width;
+    }
+
+    function placeBlock() {
+        if (game.state !== 'playing' && game.state !== 'demo') return;
+        const curr = game.current; const prev = game.blocks[game.blocks.length-1];
+        const dist = curr.x - prev.x; const absDist = Math.abs(dist);
+        
+        // 리플레이 데이터에 블록을 놓은 시점의 **경과 시간**을 기록
+        const timeSinceStart = performance.now() - game.replayStartTime;
+        game.replayData.push({ time: timeSinceStart, x: curr.x, y: curr.y, w: curr.w, h: curr.h, hue: curr.hue, dir: curr.dir, speed: curr.speed, isShining: curr.isShining });
+
+        if (absDist >= curr.w) {
+            // 실패
+            game.debris.push(createDebris(curr.x, curr.y, curr.w, curr.h, curr.hue));
+            if (game.state === 'demo') { initGame(true); } else { gameOver(); }
+            return;
+        }
+
+        let newX = curr.x; let newW = curr.w; let isShiningPerfect = false;
+
+        if (absDist <= CFG.perfectTol) {
+            newX = prev.x; newW = prev.w; game.combo++;
+            let growth = 0;
+            if (curr.isShining) { growth = CFG.baseWidth - newW; newW = CFG.baseWidth; isShiningPerfect = true; }
+            else if (newW < CFG.baseWidth) {
+                const potentialW = Math.min(newW + (CFG.baseWidth * CFG.recoveryRate), CFG.baseWidth);
+                growth = potentialW - newW; newW = potentialW;
+            }
+            if (growth > 0) {
+                const blockCenter = newX + prev.w / 2; const screenCenter = game.width / 2;
+                // 블록을 중앙에 가깝게 유지하려는 로직
+                if (Math.abs(blockCenter - screenCenter) < 1) { newX -= growth / 2; } 
+                else if (blockCenter < screenCenter) { } else { newX -= growth; }
+            }
+            triggerPerfectEffect(newX, curr.y, newW, isShiningPerfect);
+        } else {
+            game.combo = 0; newW = curr.w - absDist;
+            if (dist > 0) { newX = curr.x; game.debris.push(createDebris(curr.x + newW, curr.y, absDist, curr.h, curr.hue)); }
+            else { newX = prev.x; game.debris.push(createDebris(curr.x, curr.y, absDist, curr.h, curr.hue)); }
+            createEdgeBurst(newX, curr.y, newW, CFG.blockHeight, curr.hue);
+        }
+
+        game.blocks.push({ x: newX, y: curr.y, w: newW, h: CFG.blockHeight, hue: curr.hue });
+        game.score++; ui.score.innerText = game.score; triggerScoreEffect();
+        AudioSys.playStack(game.combo); 
+        spawnBlock();
+    }
+
+    function triggerScoreEffect() {
+        ui.score.classList.remove('score-pop'); void ui.score.offsetWidth; ui.score.classList.add('score-pop');
+        const cx = game.width / 2; const cy = game.height * 0.15;
+        for (let i = 0; i < 15; i++) {
+            const angle = Math.random() * Math.PI * 2; const speed = Math.random() * 5 + 2;
+            game.particles.push({ x: cx, y: cy, vx: Math.cos(angle) * speed, vy: Math.sin(angle) * speed, life: 1.0, color: '#FFEA00', type: 'burst' });
+        }
+    }
+
+    function updateDemo(dt) {
+        const c = game.current; if (!c) return;
+        c.x += c.speed * c.dir * dt;
+        const prev = game.blocks[game.blocks.length - 1];
+        let hit = (c.dir === 1 && c.x >= prev.x) || (c.dir === -1 && c.x <= prev.x);
+        if (hit) { c.x = prev.x; placeBlock(); } 
+        else { if (c.x > game.width + 100 || c.x < -100 - c.w) c.dir *= -1; }
+    }
+
+    function createDebris(x, y, w, h, hue) {
+        // 원래 속도로 복원
+        return { 
+            x: x, y: y, w: w, h: h, hue: hue, 
+            vx: (Math.random()-0.5)*100, // 150 -> 100
+            vy: (Math.random()-0.5)*100 - 67, // 150 -> 100, 100 -> 67
+            rot: 0, rotSpeed: (Math.random()-0.5)*10 
+        };
+    }
+
+    function createEdgeBurst(x, y, w, h, hue) {
+        const perimeter = (w + h) * 2; const count = Math.min(40, Math.floor(perimeter / 6)); 
+        for (let i = 0; i < count; i++) {
+            const pos = Math.random() * perimeter; let px, py, vx, vy; 
+            const speed = Math.random() * 67 + 33; // 속도 범위 조정 (100+50 -> 67+33)
+
+            if (pos < w) { px = x + pos; py = y; vx = (Math.random() - 0.5) * speed; vy = -speed; } 
+            else if (pos < w + h) { px = x + w; py = y + (pos - w); vx = speed; vy = (Math.random() - 0.5) * speed; } 
+            else if (pos < w + h + w) { px = x + (pos - (w + h)); py = y + h; vx = (Math.random() - 0.5) * speed; vy = speed; } 
+            else { px = x; py = y + (pos - (w + h + w)); vx = -speed; vy = (Math.random() - 0.5) * speed; }
+            game.particles.push({ x: px, y: py, vx: vx, vy: vy, life: 1.0, color: `hsl(${hue}, 100%, 70%)` });
+        }
+    }
+
+    function triggerPerfectEffect(x, y, w, isShiningPerfect) {
+        if (game.state !== 'demo') {
+            ui.combo.innerText = isShiningPerfect ? `SHINING x${game.combo}! (MAX)` : `PERFECT x${game.combo}`;
+            ui.combo.style.textShadow = isShiningPerfect ? '0 0 25px #ff00ff, 0 0 50px #ff00ff' : '0 0 20px #0ff, 0 0 40px #0ff';
+            ui.combo.style.opacity = '1'; ui.combo.style.transform = 'scale(1.2)';
+            ui.score.style.color = '#fff'; ui.score.style.transform = 'scale(1.1)';
+            setTimeout(() => { ui.combo.style.opacity = '0'; ui.combo.style.transform = 'scale(0.5)'; }, 500);
+        }
+        createEdgeBurst(x, y, w, CFG.blockHeight, game.current.hue);
+        game.particles.push({ type: 'radial-wave', x: x+w/2, y: y+CFG.blockHeight/2, size: 0, max_size: w*1.5, life: 1.0, hue: game.current.hue });
+    }
+
+    function gameOver() {
+        game.state = 'gameover';
+        AudioSys.playFail();
+        const score = game.score;
+        const isHigh = highScores.length < MAX_RANKING_COUNT || score > highScores[highScores.length-1].score;
+        setTimeout(() => {
+            ui.title.innerText = "GAME OVER";
+            ui.menu.classList.add('game-over-mode');
+            ui.rankingBtn.classList.add('display-none'); 
+            ui.rankingBoard.style.display = 'block'; 
+            ui.btn.innerText = "RETRY";
+            ui.menu.classList.remove('hide');
+            if(isHigh && score > 0) { promptForInitials(score); }
+            else displayHighScores();
+        }, 800);
+    }
+
+    function startReplay(data) {
+        if(!data || !data.length) return;
+        game.state = 'replay';
+        game.replayQueue = data; // 이미 객체 배열입니다.
+        game.replayIndex = 0;
+        game.blocks = []; game.debris = []; game.particles = []; game.score = 0; game.cameraY = 0;
+        ui.score.innerText = "0";
+        ui.menu.classList.add('hide');
+        ui.rankingBoard.style.display = 'none'; 
+        ui.replayIndicator.classList.remove('display-none');
+        ui.closeReplayBtn.classList.remove('display-none');
+        const startX = (game.width - CFG.baseWidth) / 2;
+        // 첫 번째 블록은 항상 고정된 위치에 (base block)
+        game.blocks.push({ x: startX, y: game.height - 150, w: CFG.baseWidth, h: CFG.blockHeight, hue: game.replayQueue[0].hue - 10 });
+        
+        // --- 리플레이 타이밍 초기화 ---
+        // 리플레이 시작 시간을 0으로 설정하여 현재 프레임 시간을 기준으로 상대적인 경과 시간을 계산
+        game.replayStartTime = performance.now();
+        game.replayCurrentTime = 0;
+        prepareReplayStep();
+    }
+    function stopReplay() { initGame(true); }
+
+    function prepareReplayStep() {
+        if(game.replayIndex >= game.replayQueue.length) {
+            // 리플레이 종료 시, 데모 모드로 돌아갑니다.
+            setTimeout(stopReplay, 1000); 
+            return;
+        }
+        const d = game.replayQueue[game.replayIndex];
+        const prev = game.blocks[game.blocks.length-1];
+
+        // 다음 블록의 목표 위치와 스펙을 설정
+        const targetX = d.x; 
+
+        // 현재 블록의 시작 위치 설정
+        game.current = { 
+            x: d.dir===1 ? -d.w : game.width, // 화면 밖에서 시작
+            targetX: targetX, // 블록이 멈춰야 할 최종 x 위치
+            y: prev.y - CFG.blockHeight, 
+            w: prev.w, // 이전 블록의 폭으로 시작
+            h: d.h, 
+            hue: d.hue, 
+            dir: d.dir, 
+            speed: d.speed, 
+            isShining: d.isShining,
+            
+            // 리플레이 데이터의 시간 기록을 가져와서 목표 시간으로 설정 (밀리초)
+            targetTime: d.time || 0,
+            
+            // 블록이 이동해야 할 총 거리
+            distance: Math.abs(targetX - (d.dir===1 ? -d.w : game.width))
+        };
+        // 블록이 움직이기 시작한 시간 (이전 블록을 놓은 시간)을 기록
+        game.current.startTime = game.replayCurrentTime; 
+        
+        // 블록이 목표 X 위치에 도달하는 데 걸리는 예상 시간 (초)
+        game.current.expectedDuration = game.current.distance / game.current.speed;
+    }
+    
+    // --- 리플레이 재생 로직: 시간 동기화 기반 (유지) ---
+    function updateReplay(dt) {
+        const c = game.current; 
+        if (!c) return;
+
+        // 리플레이 경과 시간 업데이트 (dt: 초 단위)
+        game.replayCurrentTime += dt * 1000; // 밀리초 단위로 관리
+
+        // 1. 시간 기반 블록 놓기 조건 확인:
+        // 현재 경과 시간이 다음 블록이 놓여야 할 목표 시간(`targetTime`)을 초과했는지 확인합니다.
+        if (game.replayCurrentTime >= c.targetTime) {
+            // 3. 목표 시간에 도달했으므로 블록을 놓는 처리를 수행
+            
+            // 블록이 놓여야 할 최종 X 위치를 미리 계산하거나, 기록된 위치(`c.targetX`)를 사용합니다.
+            // 여기서는 기록된 위치(`c.targetX`)를 사용하고, `c.x`를 그 위치로 강제 이동시킵니다.
+            c.x = c.targetX; 
+            
+            const prev = game.blocks[game.blocks.length-1];
+            const dist = c.x - prev.x; 
+            const absDist = Math.abs(dist);
+
+            if (absDist >= c.w) {
+                // 이전에 'fail' 기록이 있었다는 의미 (실제 게임에서는 이 조건으로 실패가 결정됨).
+                game.debris.push(createDebris(c.x, c.y, c.w, c.h, c.hue)); 
+                AudioSys.playFail(); 
+                game.current = null;
+                game.replayIndex++; 
+                prepareReplayStep();
+                return;
+            }
+
+            let newX = prev.x, newW = prev.w, isP = false;
+
+            if (absDist <= CFG.perfectTol) {
+                // 성공 (PERFECT)
+                game.combo++; isP = true;
+                if(c.isShining) newW = CFG.baseWidth;
+                else if(newW < CFG.baseWidth) newW = Math.min(newW + (CFG.baseWidth*CFG.recoveryRate), CFG.baseWidth);
+                
+                // Perfect에 따른 위치 조정 로직 재적용 (옵션)
+                const blockCenter = c.x + c.w / 2; const screenCenter = game.width / 2;
+                let growth = newW - prev.w;
+                if (growth > 0) {
+                    if (Math.abs(blockCenter - screenCenter) < 1) { newX -= growth / 2; } 
+                    else if (blockCenter >= screenCenter) { newX -= growth; }
+                }
+
+                triggerPerfectEffect(newX, c.y, newW, isP);
+            } else {
+                // 성공 (GOOD)
+                game.combo = 0; 
+                newW = c.w - absDist;
+                
+                // 자투리 블록 처리
+                if (dist > 0) { // 블록이 오른쪽으로 움직였고, 오른쪽에 자투리
+                    newX = c.x; 
+                    game.debris.push(createDebris(c.x + newW, c.y, absDist, c.h, c.hue));
+                } else { // 블록이 왼쪽으로 움직였고, 왼쪽에 자투리
+                    newX = prev.x; 
+                    game.debris.push(createDebris(c.x, c.y, absDist, c.h, c.hue));
+                }
+                createEdgeBurst(newX, c.y, newW, CFG.blockHeight, c.hue);
+            }
+
+            // 새 블록 스택에 추가
+            game.blocks.push({ x: newX, y: c.y, w: newW, h: CFG.blockHeight, hue: c.hue });
+            game.score++; ui.score.innerText = game.score; triggerScoreEffect(); 
+            AudioSys.playStack(game.combo); 
+            
+            // 4. 다음 스텝 준비
+            game.current = null; // 현재 블록 처리가 끝났으므로 null로 설정
+            game.replayIndex++; 
+            prepareReplayStep();
+            
+        } else {
+            // 2. 블록 이동 (아직 목표 시간이 되지 않았다면)
+            
+            // 목표 시간까지 남은 거리를 비율로 계산하여 부드럽게 이동
+            const prevTime = game.replayIndex > 0 ? game.replayQueue[game.replayIndex - 1].time : 0;
+            const elapsed = game.replayCurrentTime - prevTime;
+            const duration = c.targetTime - prevTime;
+            
+            let progress;
+            if (duration > 0) {
+                progress = Math.min(1, elapsed / duration);
+            } else {
+                // duration이 0이거나 음수일 경우 (예외 상황) 즉시 목표 위치로 이동
+                progress = 1;
+            }
+
+            const startX = c.dir===1 ? -c.w : game.width;
+            c.x = startX + (c.targetX - startX) * progress;
+        }
+    }
+
+
+    function getGradient(ctx, x, y, w, h, hue) {
+        const grad = ctx.createLinearGradient(x, y, x + w, y + h);
+        const time = Date.now() * 0.002; const shift = (Math.sin(time + y * 0.01) + 1) / 2;
+        grad.addColorStop(0, `hsl(${hue}, 100%, 50%)`); grad.addColorStop(shift, `hsl(${hue}, 100%, 75%)`); grad.addColorStop(1, `hsl(${hue}, 100%, 50%)`);
+        return grad;
+    }
+
+    function loop(timestamp) {
+        requestAnimationFrame(loop);
+        
+        // Calculate DT (in seconds)
+        if (!lastTime) lastTime = timestamp;
+        let dt = (timestamp - lastTime) / 1000;
+        lastTime = timestamp;
+        
+        // Cap DT to prevent huge jumps (e.g. tab switch)
+        if (dt > 0.1) dt = 0.1;
+
+        ctx.fillStyle = '#050505'; ctx.fillRect(0, 0, game.width, game.height);
+        ctx.fillStyle = '#fff';
+        for(let s of game.stars) {
+            s.y += s.speed * dt; if(s.y > game.height) { s.y=0; s.x=Math.random()*game.width; }
+            ctx.globalAlpha = Math.max(0.1, Math.min(1, s.opacity + Math.sin(Date.now()*s.twinkleSpeed)*0.3));
+            ctx.beginPath(); ctx.arc(s.x, s.y, s.size/2, 0, Math.PI*2); ctx.fill(); ctx.globalAlpha=1;
+        }
+
+        if(game.blocks.length > 0) {
+            const ty = (game.blocks.length*CFG.blockHeight)-(game.height*0.4);
+            // Camera lerp with DT (approx exponential decay)
+            game.cameraY += (Math.max(0, ty)-game.cameraY) * 5.0 * dt; 
+        }
+
+        for(let b of game.blocks) {
+            const dy = b.y+game.cameraY; if(dy>game.height) continue;
+            ctx.shadowBlur=15; ctx.shadowColor=`hsl(${b.hue},100%,50%)`; 
+            ctx.fillStyle = getGradient(ctx, b.x, dy, b.w, b.h, b.hue);
+            ctx.fillRect(b.x, dy, b.w, b.h);
+            ctx.shadowBlur=0; ctx.fillStyle=`hsla(${b.hue},100%,80%,0.6)`; ctx.fillRect(b.x, dy, b.w, 4);
+        }
+
+        if(game.current) {
+            if(game.state==='demo') updateDemo(dt);
+            else if(game.state==='playing') {
+                game.current.x += game.current.speed * game.current.dir * dt;
+                if(game.current.x > game.width+100) game.current.dir=-1; else if(game.current.x < -100-game.current.w) game.current.dir=1;
+            } else if(game.state==='replay') updateReplay(dt);
+            
+            if((game.state==='playing'||game.state==='demo'||game.state==='replay') && game.current) {
+                const c = game.current; const dy = c.y+game.cameraY;
+                let hue = c.hue, glow = 20;
+                if(c.isShining) { hue = (c.hue+Math.floor(Date.now()/30))%360; glow=40; }
+                ctx.shadowBlur=glow; ctx.shadowColor=`hsl(${hue},100%,50%)`; 
+                ctx.fillStyle = getGradient(ctx, c.x, dy, c.w, c.h, hue);
+                ctx.fillRect(c.x, dy, c.w, c.h);
+                ctx.shadowBlur=0; ctx.fillStyle=`rgba(255,255,255,0.8)`; ctx.fillRect(c.x, dy, c.w, 4);
+            }
+        }
+
+        for(let i=game.debris.length-1; i>=0; i--) {
+            let d = game.debris[i]; 
+            d.x += d.vx * dt; 
+            d.y += d.vy * dt; 
+            d.vy += CFG.gravity * dt; 
+            d.rot += d.rotSpeed * dt;
+            ctx.save(); ctx.translate(d.x+d.w/2, d.y+game.cameraY+d.h/2); ctx.rotate(d.rot);
+            ctx.fillStyle=`hsla(${d.hue},100%,50%,0.5)`; ctx.fillRect(-d.w/2, -d.h/2, d.w, d.h); ctx.restore();
+            if(d.y+game.cameraY > game.height) game.debris.splice(i,1);
+        }
+        for(let i=game.particles.length-1; i>=0; i--) {
+            let p=game.particles[i]; 
+            p.life -= CFG.particleDecay * dt;
+            if(p.life<=0) { game.particles.splice(i,1); continue; }
+            
+            if(p.type==='radial-wave') {
+                ctx.strokeStyle=`hsla(${p.hue},100%,80%,${p.life})`; ctx.lineWidth=3;
+                p.size += (p.max_size - p.size) * 5.0 * dt;
+                ctx.beginPath(); ctx.arc(p.x, p.y+game.cameraY, p.size, 0, Math.PI*2); ctx.stroke();
+            } else {
+                p.x += p.vx * dt; 
+                p.y += p.vy * dt; 
+                ctx.fillStyle=p.color; ctx.globalAlpha=p.life;
+                if(p.type==='burst' && p.color === '#FFEA00') { ctx.beginPath(); ctx.arc(p.x, p.y, 2, 0, Math.PI*2); ctx.fill(); } 
+                else { ctx.beginPath(); ctx.arc(p.x, p.y+game.cameraY, 3, 0, Math.PI*2); ctx.fill(); }
+                ctx.globalAlpha=1;
+            }
+        }
+    }
+
+    loop(0);
+
+    ui.intro.onclick = () => {
+        AudioSys.init(); 
+        ui.intro.style.opacity = '0';
+        setTimeout(() => ui.intro.classList.add('hide'), 500);
+        initGame(true); 
+    };
+
+    ui.btn.onclick = (e) => { e.stopPropagation(); startGame(); };
+    ui.closeReplayBtn.onclick = (e) => { e.stopPropagation(); stopReplay(); };
+    
+    // Toggle Ranking Board
+    ui.rankingBtn.onclick = (e) => {
+        e.stopPropagation();
+        if(ui.rankingBoard.style.display === 'block') {
+            ui.rankingBoard.style.display = 'none';
+        } else {
+            ui.rankingBoard.style.display = 'block';
+            displayHighScores();
+        }
+    };
+    ui.closeRankingBtn.onclick = (e) => {
+        e.stopPropagation();
+        ui.rankingBoard.style.display = 'none';
+    };
+    
+    window.addEventListener('keydown', (e) => {
+        if (e.code === 'Space') {
+            e.preventDefault(); 
+            if (!ui.intro.classList.contains('hide')) { ui.intro.click(); return; }
+            if (!ui.menu.classList.contains('hide') && !document.getElementById('initialsModal')) { startGame(); return; }
+            if (game.state === 'playing') { placeBlock(); }
+        }
+        if (e.code === 'Escape') {
+            if (game.state === 'replay') stopReplay();
+            else if (ui.rankingBoard.style.display === 'block') ui.rankingBoard.style.display = 'none';
+        }
+    });
+
+    const handleInput = (e) => {
+        if(e.target===ui.btn || e.target===ui.closeReplayBtn || e.target===ui.rankingBtn || e.target===ui.closeRankingBtn || 
+           e.target.closest('#ranking-board') || e.target.tagName==='INPUT' || e.target.id==='submitInitials' || e.target.id==='intro-screen') return;
+        if(game.state==='playing') { e.preventDefault(); placeBlock(); }
+    };
+    window.addEventListener('mousedown', handleInput);
+    window.addEventListener('touchstart', handleInput, {passive:false});
+    
+</script>
+</body>
+</html>
