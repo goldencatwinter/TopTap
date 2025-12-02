@@ -39,7 +39,7 @@
         /* === SCORE & COMBO UI === */
         #score-container {
             position: absolute; 
-            top: 5%; /* 점수 위치 (캔버스 높이의 5% 지점으로 상향 조정) */
+            top: 10%; /* 점수 위치 (캔버스 높이의 10% 지점) */
             text-align: center;
         }
 
@@ -74,7 +74,7 @@
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0, 0, 0, 0.8); backdrop-filter: blur(5px);
             display: flex; flex-direction: column; align-items: center; 
-            justify-content: center; /* 수직 중앙 정렬 (TOP 글자 가운데로) */
+            justify-content: center; /* 수직 중앙 정렬 */
             padding-top: 0; 
             box-sizing: border-box;
             z-index: 20; pointer-events: auto; cursor: pointer; transition: opacity 0.5s;
@@ -82,6 +82,7 @@
         #intro-screen h1 {
             font-size: 5rem; 
             color: #fff; margin: 0; 
+            /* margin-top: 45vh; 제거하고 flexbox 중앙 정렬 사용 */
             text-shadow: 0 0 20px #fff, 0 0 40px rgba(255,255,255,0.5);
             background: none; -webkit-text-fill-color: #fff;
         }
@@ -106,7 +107,7 @@
 
         #menu-screen h1 {
             font-size: 4rem;
-            margin-top: 35%; /* GAME OVER 위치를 25%에서 35%로 조정 (10% 낮춤) */
+            margin-top: 35%; /* GAME OVER 위치 */
             margin-bottom: auto; 
             text-transform: uppercase;
             font-weight: 900; letter-spacing: 5px;
@@ -552,22 +553,14 @@
         },
         playStack(combo) {
             if (!game.currentSong) return;
-            const notes = game.currentSong.notes; 
-            
-            // 데모 모드이거나 게임 플레이 중일 때 game.score를 사용하여 음계 인덱스 계산
-            const noteIdx = (game.blocks.length - 1) % notes.length; // 블록 개수를 기준으로 음계 순환
-            
+            const notes = game.currentSong.notes; const noteIdx = (game.score) % notes.length;
             let freq = notes[noteIdx];
             const cycleLen = 16; const maxOctave = 1; 
-            
-            // 점수 대신 블록 개수를 사용하여 옥타브 쉬프트 계산 (데모 모드/플레이 모드 모두 적용)
-            const blockCount = game.blocks.length - 1; // 기둥 블록 제외
-            const cycleStep = Math.floor(blockCount / cycleLen);
+            const cycleStep = Math.floor(game.score / cycleLen);
             let cycleIndex = cycleStep % (maxOctave * 2);
             let octaveShift = cycleIndex;
             if (cycleIndex > maxOctave) octaveShift = (maxOctave * 2) - cycleIndex;
             freq = freq * 0.5 * Math.pow(2, octaveShift);
-            
             this.playOrgel(freq, 0.4);
             if (combo > 0) { setTimeout(() => { this.playOrgel(freq * 1.5, 0.1); }, 120); }
         },
@@ -749,35 +742,11 @@
         game.baseHue = (game.baseHue + 10) % 360;
         const isShining = Math.random() < game_config.shiningProb;
         
-        // --- 속도 증가 로직 수정: 50개마다 6%씩 서서히 증가 ---
-        let currentSpeed = game_config.startSpeed;
-        // 기둥 블록(1개)을 제외한 쌓인 블록의 수 = 게임의 실제 점수
-        const score = game.blocks.length - 1; 
-        
-        const INCREASE_RATE = 0.06; // 6% 증가율
-        const SEGMENT_SIZE = 50;    // 50개 단위
-        
-        // 50개 단위 구간 (0~49: 0, 50~99: 1, ...)
-        const increaseCount = Math.floor(score / SEGMENT_SIZE); 
-        
-        // 현재 50점 구간 내에서의 진행률 (0.0 ~ 0.98)
-        const progressInSegment = (score % SEGMENT_SIZE) / SEGMENT_SIZE; 
-        
-        // 총 누적 증가율 = (완료된 구간 수 * 6%) + (현재 구간 내 진행률 * 6%)
-        const totalIncreaseMultiplier = 1 + (increaseCount * INCREASE_RATE) + (progressInSegment * INCREASE_RATE);
+        const cycle = game.score % 60;
+        const speedFactor = cycle < 30 ? cycle : (60 - cycle);
+        const currentSpeed = game_config.startSpeed + (speedFactor * game_config.speedInc);
 
-        currentSpeed = game_config.startSpeed * totalIncreaseMultiplier;
-
-        game.current = { 
-            x: 0, 
-            y: prev.y - game_config.blockHeight, 
-            w: prev.w, 
-            h: game_config.blockHeight, 
-            hue: game.baseHue, 
-            dir: Math.random()<0.5?1:-1, 
-            speed: currentSpeed, // 수정된 속도 적용
-            isShining: isShining 
-        };
+        game.current = { x: 0, y: prev.y - game_config.blockHeight, w: prev.w, h: game_config.blockHeight, hue: game.baseHue, dir: Math.random()<0.5?1:-1, speed: currentSpeed, isShining: isShining };
         
         game.current.x = game.current.dir === 1 ? -game.current.w : game.width;
     }
@@ -823,12 +792,7 @@
 
             // 블록을 스택에 추가
             game.blocks.push({ x: newX, y: curr.y, w: newW, h: game_config.blockHeight, hue: curr.hue });
-            
-            // 데모 모드와 플레이 모드 모두에서 점수 증가 및 UI 업데이트
-            game.score++; 
-            ui.score.innerText = game.score; 
-            triggerScoreEffect();
-            
+            game.score++; ui.score.innerText = game.score; triggerScoreEffect();
             AudioSys.playStack(game.combo); 
             spawnBlock();
         }
@@ -861,7 +825,6 @@
         }
     }
 
-    // --- 데모 모드 업데이트 로직 수정: 점수 증가 허용 ---
     function updateDemo(dt) {
         const c = game.current; if (!c) return;
         c.x += c.speed * c.dir * dt;
@@ -871,13 +834,8 @@
             c.x = prev.x; 
             // 데모 모드에서는 절단 로직을 실행하지 않고, 블록을 스택에 완벽하게 추가한 후 다음 블록을 바로 생성
             game.blocks.push({ x: c.x, y: c.y, w: c.w, h: c.h, hue: c.hue });
-            
-            // 데모 모드에서도 점수 증가
             game.score++; 
-            ui.score.innerText = game.score; // 점수 카운트 움직이도록 UI 업데이트
-            triggerScoreEffect(); // 시각적 효과 추가
-            
-            AudioSys.playStack(game.combo); // 데모 플레이 시 음악 재생 
+            AudioSys.playStack(game.combo); // 데모 플레이 시 음악 재생
             spawnBlock(); 
         } 
         else { if (c.x > game.width + 100 || c.x < -100 - c.w) c.dir *= -1; }
@@ -1297,7 +1255,7 @@
         }
 
         // 'playing' 상태일 때만 블록 배치 허용
-        if(game.state==='playing' || game.state==='demo') { // 데모 모드일 때도 클릭 허용 (placeBlock이 데모 모드 처리)
+        if(game.state==='playing') { 
             e.preventDefault(); 
             placeBlock(); 
         }
