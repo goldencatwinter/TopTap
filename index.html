@@ -825,6 +825,7 @@
         }
     }
 
+    // 데모 모드 업데이트 함수 수정
     function updateDemo(dt) {
         const c = game.current; if (!c) return;
         c.x += c.speed * c.dir * dt;
@@ -835,10 +836,26 @@
             // 데모 모드에서는 절단 로직을 실행하지 않고, 블록을 스택에 완벽하게 추가한 후 다음 블록을 바로 생성
             game.blocks.push({ x: c.x, y: c.y, w: c.w, h: c.h, hue: c.hue });
             game.score++; 
+            
+            // 데모 플레이 시 점수 업데이트 및 효과 추가 (수정된 부분)
+            ui.score.innerText = game.score; 
+            triggerScoreEffect();           
+            
             AudioSys.playStack(game.combo); // 데모 플레이 시 음악 재생
             spawnBlock(); 
         } 
-        else { if (c.x > game.width + 100 || c.x < -100 - c.w) c.dir *= -1; }
+        else { 
+            // 블록이 캔버스 경계를 넘어갔을 때 방향 전환
+            const max_x = game.width - c.w;
+            const min_x = 0;
+            if (c.dir === 1 && c.x >= max_x) {
+                c.dir = -1;
+                c.x = max_x; // 경계에 고정
+            } else if (c.dir === -1 && c.x <= min_x) {
+                c.dir = 1;
+                c.x = min_x; // 경계에 고정
+            }
+        }
     }
 
     function createDebris(x, y, w, h, hue) {
